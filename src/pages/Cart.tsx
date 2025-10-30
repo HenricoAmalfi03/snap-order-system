@@ -6,7 +6,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Send, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabaseClient"; // ← Certifique-se de que existe esse arquivo configurado
+import { supabase } from "@/integrationsuprabase/client"; // ✅ usa seu cliente existente
 
 const Cart = () => {
   const { toast } = useToast();
@@ -14,10 +14,12 @@ const Cart = () => {
   const [tableNumber, setTableNumber] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [selectedWaiter, setSelectedWaiter] = useState("");
-  const [waiters, setWaiters] = useState<{ id: string; name: string; phone: string; is_available: boolean }[]>([]);
+  const [waiters, setWaiters] = useState<
+    { id: string; name: string; phone: string; is_available: boolean }[]
+  >([]);
   const [loadingWaiters, setLoadingWaiters] = useState(true);
 
-  // 🔹 Buscar garçons do banco
+  // 🔹 Buscar garçons da tabela "waiters"
   useEffect(() => {
     const fetchWaiters = async () => {
       setLoadingWaiters(true);
@@ -27,7 +29,7 @@ const Cart = () => {
         .order("created_at", { ascending: true });
 
       if (error) {
-        console.error(error);
+        console.error("Erro ao carregar garçons:", error);
         toast({
           title: "Erro ao carregar garçons",
           description: error.message,
@@ -83,9 +85,9 @@ const Cart = () => {
       <main className="container mx-auto px-4 py-8 max-w-2xl">
         <h1 className="text-4xl font-bold mb-8">Finalizar Pedido</h1>
 
-        {/* ... Itens do pedido e dados do cliente permanecem iguais ... */}
+        {/* ... Itens e dados do cliente permanecem iguais ... */}
 
-        {/* Escolha do Garçom */}
+        {/* 🔹 Escolha do Garçom */}
         <div className="bg-card border border-border rounded-lg p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Escolha o Garçom</h2>
 
