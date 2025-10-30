@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,6 +6,14 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Send, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Waiter {
+  id: string;
+  name: string;
+  phone: string;
+  is_available: boolean;
+}
 
 const Cart = () => {
   const { toast } = useToast();
@@ -14,13 +21,36 @@ const Cart = () => {
   const [tableNumber, setTableNumber] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
   const [selectedWaiter, setSelectedWaiter] = useState("");
+  const [waiters, setWaiters] = useState<Waiter[]>([]);
+  const [loadingWaiters, setLoadingWaiters] = useState(true);
 
-  // Mock data - will be replaced with backend data
-  const mockWaiters = [
-    { id: 1, name: "João", phone: "5511999999999", available: true },
-    { id: 2, name: "Maria", phone: "5511988888888", available: true },
-  ];
+  // 🔹 Buscar garçons reais do Supabase
+  useEffect(() => {
+    async function fetchWaiters() {
+      try {
+        const { data, error } = await supabase
+          .from("waiters")
+          .select("id, name, phone, is_available")
+          .order("created_at", { ascending: true });
 
+        if (error) throw error;
+        setWaiters(data || []);
+      } catch (err) {
+        console.error("Erro ao buscar garçons:", err);
+        toast({
+          title: "Erro ao carregar garçons",
+          description: "Tente novamente mais tarde.",
+          variant: "destructive",
+        });
+      } finally {
+        setLoadingWaiters(false);
+      }
+    }
+
+    fetchWaiters();
+  }, [toast]);
+
+  // 🔹 Enviar pedido via WhatsApp
   const handleSendOrder = () => {
     if (!customerName || !tableNumber || !paymentMethod || !selectedWaiter) {
       toast({
@@ -31,10 +61,20 @@ const Cart = () => {
       return;
     }
 
-    const waiter = mockWaiters.find((w) => w.id.toString() === selectedWaiter);
+    const waiter = waiters.find((w) => w.id === selectedWaiter);
+    if (!waiter) {
+      toast({
+        title: "Garçom inválido",
+        description: "Selecione um garçom disponível.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const message = `*Novo Pedido*\n\nNome: ${customerName}\nMesa: ${tableNumber}\nPagamento: ${paymentMethod}\n\n*Itens:*\n- X-Burger - R$ 25,90\n\nTotal: R$ 25,90`;
-    
-    const whatsappUrl = `https://wa.me/${waiter?.phone}?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/${waiter.phone}?text=${encodeURIComponent(
+      message
+    )}`;
     window.open(whatsappUrl, "_blank");
   };
 
@@ -104,42 +144,38 @@ const Cart = () => {
         <div className="bg-card border border-border rounded-lg p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Forma de Pagamento</h2>
           <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="debito" id="debito" />
-              <Label htmlFor="debito">Débito</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="credito" id="credito" />
-              <Label htmlFor="credito">Crédito</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="pix" id="pix" />
-              <Label htmlFor="pix">PIX</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="dinheiro" id="dinheiro" />
-              <Label htmlFor="dinheiro">Dinheiro</Label>
-            </div>
+            {["debito", "credito", "pix", "dinheiro"].map((method) => (
+              <div key={method} className="flex items-center space-x-2">
+                <RadioGroupItem value={method} id={method} />
+                <Label htmlFor={method}>{method.toUpperCase()}</Label>
+              </div>
+            ))}
           </RadioGroup>
         </div>
 
         {/* Waiter Selection */}
         <div className="bg-card border border-border rounded-lg p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Escolha o Garçom</h2>
-          <RadioGroup value={selectedWaiter} onValueChange={setSelectedWaiter}>
-            {mockWaiters.map((waiter) => (
-              <div key={waiter.id} className="flex items-center space-x-2">
-                <RadioGroupItem
-                  value={waiter.id.toString()}
-                  id={`waiter-${waiter.id}`}
-                  disabled={!waiter.available}
-                />
-                <Label htmlFor={`waiter-${waiter.id}`}>
-                  {waiter.name} {!waiter.available && "(Indisponível)"}
-                </Label>
-              </div>
-            ))}
-          </RadioGroup>
+          {loadingWaiters ? (
+            <p>Carregando garçons...</p>
+          ) : waiters.length === 0 ? (
+            <p>Nenhum garçom disponível.</p>
+          ) : (
+            <RadioGroup value={selectedWaiter} onValueChange={setSelectedWaiter}>
+              {waiters.map((waiter) => (
+                <div key={waiter.id} className="flex items-center space-x-2">
+                  <RadioGroupItem
+                    value={waiter.id}
+                    id={`waiter-${waiter.id}`}
+                    disabled={!waiter.is_available}
+                  />
+                  <Label htmlFor={`waiter-${waiter.id}`}>
+                    {waiter.name} {!waiter.is_available && "(Indisponível)"}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          )}
         </div>
 
         {/* Send Button */}
