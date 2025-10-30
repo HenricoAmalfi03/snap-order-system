@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,35 +22,32 @@ const Cart = () => {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [selectedWaiter, setSelectedWaiter] = useState("");
   const [waiters, setWaiters] = useState<Waiter[]>([]);
-  const [loadingWaiters, setLoadingWaiters] = useState(true);
+  const [loading, setLoading] = useState(true);
 
-  // 🔹 Buscar garçons reais do Supabase
   useEffect(() => {
     async function fetchWaiters() {
       try {
         const { data, error } = await supabase
           .from("waiters")
-          .select("id, name, phone, is_available")
-          .order("created_at", { ascending: true });
+          .select("id, name, phone, is_available");
 
         if (error) throw error;
         setWaiters(data || []);
       } catch (err) {
         console.error("Erro ao buscar garçons:", err);
         toast({
-          title: "Erro ao carregar garçons",
-          description: "Tente novamente mais tarde.",
+          title: "Erro",
+          description: "Não foi possível carregar os garçons.",
           variant: "destructive",
         });
       } finally {
-        setLoadingWaiters(false);
+        setLoading(false);
       }
     }
 
     fetchWaiters();
   }, [toast]);
 
-  // 🔹 Enviar pedido via WhatsApp
   const handleSendOrder = () => {
     if (!customerName || !tableNumber || !paymentMethod || !selectedWaiter) {
       toast({
@@ -61,17 +58,19 @@ const Cart = () => {
       return;
     }
 
-    const waiter = waiters.find((w) => w.id === selectedWaiter);
+    const waiter = waiters.find((w) => w.id.toString() === selectedWaiter);
     if (!waiter) {
       toast({
-        title: "Garçom inválido",
-        description: "Selecione um garçom disponível.",
+        title: "Erro",
+        description: "Garçom não encontrado.",
         variant: "destructive",
       });
       return;
     }
 
-    const message = `*Novo Pedido*\n\nNome: ${customerName}\nMesa: ${tableNumber}\nPagamento: ${paymentMethod}\n\n*Itens:*\n- X-Burger - R$ 25,90\n\nTotal: R$ 25,90`;
+    const message = `*Novo Pedido*\n\n👤 Nome: ${customerName}\n🪑 Mesa: ${tableNumber}\n💳 Pagamento: ${paymentMethod}\n\n*Itens:*\n- X-Burger - R$ 25,90\n\n💰 *Total:* R$ 25,90`;
+
+    // ✅ Envio pelo wa.me
     const whatsappUrl = `https://wa.me/${waiter.phone}?text=${encodeURIComponent(
       message
     )}`;
@@ -115,7 +114,7 @@ const Cart = () => {
           </div>
         </div>
 
-        {/* Customer Info Form */}
+        {/* Customer Info */}
         <div className="bg-card border border-border rounded-lg p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Seus Dados</h2>
           <div className="space-y-4">
@@ -144,28 +143,37 @@ const Cart = () => {
         <div className="bg-card border border-border rounded-lg p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Forma de Pagamento</h2>
           <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod}>
-            {["debito", "credito", "pix", "dinheiro"].map((method) => (
-              <div key={method} className="flex items-center space-x-2">
-                <RadioGroupItem value={method} id={method} />
-                <Label htmlFor={method}>{method.toUpperCase()}</Label>
-              </div>
-            ))}
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Débito" id="debito" />
+              <Label htmlFor="debito">Débito</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Crédito" id="credito" />
+              <Label htmlFor="credito">Crédito</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="PIX" id="pix" />
+              <Label htmlFor="pix">PIX</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="Dinheiro" id="dinheiro" />
+              <Label htmlFor="dinheiro">Dinheiro</Label>
+            </div>
           </RadioGroup>
         </div>
 
         {/* Waiter Selection */}
         <div className="bg-card border border-border rounded-lg p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Escolha o Garçom</h2>
-          {loadingWaiters ? (
+
+          {loading ? (
             <p>Carregando garçons...</p>
-          ) : waiters.length === 0 ? (
-            <p>Nenhum garçom disponível.</p>
           ) : (
             <RadioGroup value={selectedWaiter} onValueChange={setSelectedWaiter}>
               {waiters.map((waiter) => (
                 <div key={waiter.id} className="flex items-center space-x-2">
                   <RadioGroupItem
-                    value={waiter.id}
+                    value={waiter.id.toString()}
                     id={`waiter-${waiter.id}`}
                     disabled={!waiter.is_available}
                   />
