@@ -3,8 +3,15 @@ import { Link } from "react-router-dom";
 import { UtensilsCrossed, ShoppingCart, UserCog } from "lucide-react";
 
 const Index = () => {
+  const handleContact = () => {
+    const phone = "5513991597827"; // coloque seu número
+    const message = "Olá! gostaria de saber mais sobre o projeto";
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    window.open(url, "_blank");
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-background via-background to-muted">
       {/* Header */}
       <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -22,7 +29,7 @@ const Index = () => {
       </header>
 
       {/* Hero Section */}
-      <main className="container mx-auto px-4 py-16">
+      <main className="container mx-auto px-4 py-16 flex-1">
         <div className="max-w-3xl mx-auto text-center space-y-8">
           <div className="space-y-4">
             <h2 className="text-5xl font-bold text-foreground">
@@ -85,6 +92,18 @@ const Index = () => {
           </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="bg-card border-t border-border p-4 text-center text-sm text-muted-foreground">
+        Desenvolvido com <span className="text-red-500">❤️</span> pelo técnico Henrico Amalfi!{" "}
+        Gostou do projeto?{" "}
+        <button
+          onClick={handleContact}
+          className="underline text-primary hover:text-primary/80"
+        >
+          Entre em contato clicando aqui
+        </button>
+      </footer>
     </div>
   );
 };
