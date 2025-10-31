@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Send, Trash2 } from "lucide-react";
@@ -20,6 +21,7 @@ const Cart = () => {
   const [customerName, setCustomerName] = useState("");
   const [tableNumber, setTableNumber] = useState("");
   const [paymentMethod, setPaymentMethod] = useState("");
+  const [observation, setObservation] = useState("");
   const [selectedWaiter, setSelectedWaiter] = useState("");
   const [waiters, setWaiters] = useState<Waiter[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,7 +70,8 @@ const Cart = () => {
       return;
     }
 
-    const message = `*Novo Pedido*\n\n👤 Nome: ${customerName}\n🪑 Mesa: ${tableNumber}\n💳 Pagamento: ${paymentMethod}\n\n*Itens:*\n- X-Burger - R$ 25,90\n\n💰 *Total:* R$ 25,90`;
+    const observationText = observation ? `\n📝 Observação: ${observation}` : "";
+    const message = `*Novo Pedido*\n\n👤 Nome: ${customerName}\n🪑 Mesa: ${tableNumber}\n💳 Pagamento: ${paymentMethod}${observationText}\n\n*Itens:*\n- X-Burger - R$ 25,90\n\n💰 *Total:* R$ 25,90`;
 
     // ✅ Envio pelo wa.me
     const whatsappUrl = `https://wa.me/${waiter.phone}?text=${encodeURIComponent(
@@ -160,6 +163,21 @@ const Cart = () => {
               <Label htmlFor="dinheiro">Dinheiro</Label>
             </div>
           </RadioGroup>
+        </div>
+
+        {/* Observation */}
+        <div className="bg-card border border-border rounded-lg p-6 mb-6">
+          <h2 className="text-xl font-semibold mb-4">Observação do Pedido</h2>
+          <div>
+            <Label htmlFor="observation">Observação (opcional)</Label>
+            <Textarea
+              id="observation"
+              placeholder="Ex: Sem cebola, ponto da carne bem passado..."
+              value={observation}
+              onChange={(e) => setObservation(e.target.value)}
+              className="mt-2"
+            />
+          </div>
         </div>
 
         {/* Waiter Selection */}

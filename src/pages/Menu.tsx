@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { ShoppingCart, ArrowLeft, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface Category {
   id: string;
@@ -80,12 +81,15 @@ const Menu = () => {
                 Voltar
               </Button>
             </Link>
-            <Link to="/cart">
-              <Button variant="default" size="sm" className="gap-2">
-                <ShoppingCart className="h-4 w-4" />
-                Carrinho ({cart.length})
-              </Button>
-            </Link>
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
+              <Link to="/cart">
+                <Button variant="default" size="sm" className="gap-2">
+                  <ShoppingCart className="h-4 w-4" />
+                  Carrinho ({cart.length})
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>

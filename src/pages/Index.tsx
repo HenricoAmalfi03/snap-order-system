@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { UtensilsCrossed, ShoppingCart, UserCog } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Index = () => {
   const handleContact = () => {
@@ -19,12 +20,15 @@ const Index = () => {
             <UtensilsCrossed className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-bold text-foreground">Garçom Online</h1>
           </div>
-          <Link to="/admin">
-            <Button variant="outline" size="sm" className="gap-2">
-              <UserCog className="h-4 w-4" />
-              Admin
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link to="/admin">
+              <Button variant="outline" size="sm" className="gap-2">
+                <UserCog className="h-4 w-4" />
+                Admin
+              </Button>
+            </Link>
+          </div>
         </div>
       </header>
 
